@@ -115,7 +115,7 @@ export default function LoginPage() {
             src="/polverigi.svg"
             alt=""
             aria-hidden="true"
-            className="mx-auto mb-4 h-16 w-16"
+            className="mx-auto mb-4 h-35 w-35"
           />
 
           <h1 className="text-2xl font-black tracking-tight text-gray-900">
@@ -257,7 +257,7 @@ export default function LoginPage() {
               }}
               className="w-full cursor-pointer py-2.5 text-center text-xs font-semibold text-gray-600 transition-colors hover:text-gray-900"
             >
-              ←- Torna al Login
+              ← Torna al Login
             </button>
           </form>
         )}

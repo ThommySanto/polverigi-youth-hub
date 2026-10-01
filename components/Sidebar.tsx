@@ -31,6 +31,7 @@ export default function Sidebar({ active }: { active: ActivePage }) {
     }
 
     document.addEventListener('keydown', handleKeyDown)
+
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
@@ -53,10 +54,13 @@ export default function Sidebar({ active }: { active: ActivePage }) {
       {/* Top bar visibile solo su mobile */}
       <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-xs md:hidden">
         <div className="flex items-center gap-2">
-          <span
+          <img
+            src="/polverigi.svg"
+            alt=""
             aria-hidden="true"
-            className="h-3 w-3 animate-pulse rounded-full bg-lime-500"
+            className="h-8 w-8 shrink-0"
           />
+
           <span className="text-sm font-black tracking-tight text-gray-900">
             Polverigi Hub
           </span>
