@@ -257,7 +257,7 @@ export default function LoginPage() {
               }}
               className="w-full cursor-pointer py-2.5 text-center text-xs font-semibold text-gray-600 transition-colors hover:text-gray-900"
             >
-              ← Torna al Login
+              ←- Torna al Login
             </button>
           </form>
         )}
