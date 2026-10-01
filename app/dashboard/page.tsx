@@ -7,27 +7,51 @@ import Sidebar from '@/components/Sidebar'
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [userEmail, setUserEmail] = useState<string>('')
+  const [userName, setUserName] = useState('')
   const [upcomingEventsCount, setUpcomingEventsCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function checkUserAndFetch() {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
       if (!session) {
         router.push('/login')
         return
       }
 
-      setUserEmail(session.user.email || 'Utente')
+      const userId = session.user.id
+      const userEmail = session.user.email ?? ''
 
+      // Legge il nome utente dalla tabella profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single()
+
+      // Se non trova lo username, usa l'email come fallback
+      const fallbackName =
+        userEmail.split('@')[0].replace(/[._-]+/g, ' ') || 'Utente'
+
+      setUserName(profile?.username?.trim() || fallbackName)
+
+      // Conta gli eventi futuri
       const { data: eventsData } = await supabase.from('events').select('*')
+
       if (eventsData) {
         const now = new Date()
         now.setHours(0, 0, 0, 0)
-        const upcoming = eventsData.filter((ev) => new Date(ev.event_date) >= now)
+
+        const upcoming = eventsData.filter(
+          (event) => new Date(event.event_date) >= now
+        )
+
         setUpcomingEventsCount(upcoming.length)
       }
+
       setLoading(false)
     }
 
@@ -36,59 +60,80 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-sm text-gray-500 w-full">
+      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 text-sm text-gray-500">
         Verifica autorizzazioni in corso...
       </div>
     )
   }
 
-  const userName = userEmail.split('@')[0]
-
   return (
-    <div className="responsive-page min-h-screen bg-gray-50 flex flex-col md:flex-row w-full m-0 p-0">
+    <div className="responsive-page flex min-h-screen w-full flex-col bg-gray-50 md:flex-row">
       <Sidebar active="dashboard" />
 
-      <main className="responsive-main flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto w-full">
+      <main className="responsive-main w-full flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
         <header className="mb-6 sm:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
-            Ciao, <span className="text-lime-600 capitalize">{userName}</span>! 👋
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+            Ciao, <span className="capitalize text-lime-600">{userName}</span>! 👋
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Benvenuto nell'area di controllo del centro giovanile.</p>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Benvenuto nell’area di controllo del centro giovanile.
+          </p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 w-full">
-          <div className="responsive-card bg-white p-4 sm:p-6 rounded-2xl border border-gray-200/80 shadow-sm">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Eventi in Programma</span>
-            <div className="text-3xl font-extrabold text-gray-900 mt-2">
+        <div className="responsive-card grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm sm:p-6">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Eventi in Programma
+            </span>
+
+            <div className="mt-2 text-3xl font-extrabold text-gray-900">
               {upcomingEventsCount}
             </div>
-            <p className="text-xs text-gray-500 mt-3 leading-relaxed">
-              Attività e appuntamenti attivi sincronizzati dall'agenda.
+
+            <p className="mt-3 text-xs leading-relaxed text-gray-500">
+              Attività e appuntamenti attivi sincronizzati dall’agenda.
             </p>
           </div>
 
-          <div className="responsive-card bg-white p-4 sm:p-6 rounded-2xl border border-dashed border-gray-300 shadow-sm flex flex-col justify-between">
+          <div className="flex flex-col justify-between rounded-2xl border border-dashed border-gray-300 bg-white p-4 shadow-sm sm:p-6">
             <div>
-              <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Sezione da Definire</span>
-              <div className="text-xl font-bold text-gray-900 mt-2">Da Aggiungere 📌</div>
-              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                Spazio riservato per una nuova metrica o funzione da decidere nel prossimo incontro.
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">
+                Sezione da Definire
+              </span>
+
+              <div className="mt-2 text-xl font-bold text-gray-900">
+                Da Aggiungere 📌
+              </div>
+
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Spazio riservato per una nuova metrica o funzione da decidere nel
+                prossimo incontro.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-400 font-medium">
+
+            <div className="mt-4 border-t border-gray-100 pt-3 text-[11px] font-medium text-gray-400">
               In attesa di indicazioni
             </div>
           </div>
 
-          <div className="responsive-card bg-white p-4 sm:p-6 rounded-2xl border border-dashed border-gray-300 shadow-sm flex flex-col justify-between">
+          <div className="flex flex-col justify-between rounded-2xl border border-dashed border-gray-300 bg-white p-4 shadow-sm sm:p-6">
             <div>
-              <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Sezione da Definire</span>
-              <div className="text-xl font-bold text-gray-900 mt-2">Da Aggiungere 📌</div>
-              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                Spazio riservato per un'ulteriore funzionalità o widget da valutare insieme.
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">
+                Sezione da Definire
+              </span>
+
+              <div className="mt-2 text-xl font-bold text-gray-900">
+                Da Aggiungere 📌
+              </div>
+
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Spazio riservato per un’ulteriore funzionalità o widget da valutare
+                insieme.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-400 font-medium">
+
+            <div className="mt-4 border-t border-gray-100 pt-3 text-[11px] font-medium text-gray-400">
               In attesa di indicazioni
             </div>
           </div>
